@@ -29,11 +29,13 @@ jobs:
           python clean_m3u.py "$M3U_SOURCE"
 
       - name: Commit and push if changed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.email "bot@github.com"
           git config --local user.name "m3u-clean-bot"
           if [ -n "$(git status --porcelain)" ]; then
             git add playlist.m3u
             git commit -m "Automated clean from remote source"
-            git push
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
           fi

@@ -1,0 +1,39 @@
+name: Clean M3U Playlist
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour
+  workflow_dispatch:
+
+env:
+  M3U_SOURCE: https://raw.githubusercontent.com/abusaeeidx/Mrgify-BDIX-IPTV/refs/heads/main/playlist.m3u
+
+jobs:
+  clean-m3u:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install requests
+        run: python -m pip install requests
+
+      - name: Download and Clean playlist.m3u
+        run: |
+          python clean_m3u.py "$M3U_SOURCE"
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "bot@github.com"
+          git config --local user.name "m3u-clean-bot"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add playlist.m3u
+            git commit -m "Automated clean from remote source"
+            git push
+          fi
